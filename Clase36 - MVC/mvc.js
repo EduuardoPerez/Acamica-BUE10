@@ -31,8 +31,7 @@ class Vista {
  }
 
  getElement(selector) {
-   const element = document.querySelector(selector);
-   return element;
+   return document.querySelector(selector);
  }
 
  get _todoText() {
@@ -87,37 +86,40 @@ class Vista {
  }
 
   // Event listener
-  bindAddTodo(handler) {
-    this.form.addEventListener("submit", function(event) {
-      event.preventDefault();
+  bindAddTodo(handle) {
+    this.form.addEventListener('submit', event => {
+      event.preventDefault()
 
       if (this._todoText) {
-        handler(this._todoText)
+        handle(this._todoText)
         this._resetInput()
+      }
+    })
+  }
+
+  bindDeleteTodo(handle) {
+    this.toDoList.addEventListener("click", function(event) {
+      event.preventDefault();
+
+      if (event.target.className === "delete") {
+        const id = parseInt(event.target.parentElement.id);
+
+        handle(id);
       }
     });
   }
 
-  bindDeleteTodo = handler => {
-    this.toDoList.addEventListener("click", event => {
-      if (event.target.className === "delete") {
-        const id = parseInt(event.target.parentElement.id);
+  bindToggleTodo(handle) {
+    this.toDoList.addEventListener("change", function(event) {
+      event.preventDefault();
 
-        handler(id);
-      }
-    })
-  };
-
-  bindToggleTodo = handler => {
-    this.toDoList.addEventListener('change', event => {
       if (event.target.type === "checkbox") {
         const id = parseInt(event.target.parentElement.id);
 
-
-        handler(id);
+        handle(id);
       }
     });
-  };
+  }
 }
 
 class Modelo {
@@ -125,20 +127,24 @@ class Modelo {
    this.toDoList = JSON.parse(localStorage.getItem('toDoList')) || [];
  }
 
- getId() {
-   if (this.toDoList.length > 0) {
-    return this.toDoList[this.toDoList.length - 1].id + 1
-   }
-   return 1;
- }
+  bindTodoListChanged(callback) {
+    this.onTodoListChanged = callback;
+  }
 
- _commit = todos => {
+ _commit(todos) {
    this.onTodoListChanged(todos);
 
    localStorage.setItem('toDoList', JSON.stringify(todos));
  };
 
- addToDo(toDoText) {
+  getId() {
+    if (this.toDoList.length > 0) {
+      return this.toDoList[this.toDoList.length - 1].id + 1
+    }
+    return 1;
+  }
+
+ addTodo(toDoText) {
    const todo = {
      id: this.getId(),
      text: toDoText,
@@ -150,7 +156,7 @@ class Modelo {
    this._commit(this.toDoList);
  }
 
- deleteToDo(id) {
+ deleteToDo = id => {
    this.toDoList = this.toDoList.filter(function(todo) {
      return todo.id !== id;
    });
@@ -158,7 +164,7 @@ class Modelo {
    this._commit(this.toDoList);
  }
 
- toggleToDo(id) {
+ toggleToDo = id => {
    this.toDoList = this.toDoList.map(function(todo) {
      return todo.id === id
        ? { id: todo.id, text: todo.text, complete: !todo.complete }
@@ -166,10 +172,6 @@ class Modelo {
    });
 
    this._commit(this.toDoList);
- }
-
- bindTodoListChanged = callback => {
-   this.onTodoListChanged = callback;
  }
 }
 
@@ -180,27 +182,27 @@ class Controller {
 
    this.modelo.bindTodoListChanged(this.onTodoListChanged);
 
-   this.vista.bindAddTodo(this.handlerAddTodo);
-   this.vista.bindDeleteTodo(this.handlerDeleteTodo);
-   this.vista.bindToggleTodo(this.handlerToggleTodo);
+   this.vista.bindAddTodo(this.handleAddTodo);
+   this.vista.bindDeleteTodo(this.handleDeleteTodo);
+   this.vista.bindToggleTodo(this.handleToggleTodo);
 
    this.onTodoListChanged(this.modelo.toDoList);
  }
 
- onTodoListChanged(todos) {
+ onTodoListChanged = todos => {
    this.vista.displayTodos(todos);
  }
 
   // Handlers
-  handlerAddTodo(todoText) {
-    this.modelo.addToDo(todoText);
+  handleAddTodo = todoText => {
+    this.modelo.addTodo(todoText)
   }
 
-  handlerDeleteTodo(id) {
+  handleDeleteTodo = id => {
     this.modelo.deleteToDo(id);
   }
 
-  handlerToggleTodo(id) {
+  handleToggleTodo = id => {
     this.modelo.toggleToDo(id);
   }
 
@@ -210,5 +212,3 @@ const vista = new Vista();
 const modelo = new Modelo();
 
 const app = new Controller(modelo, vista);
-
-app.modelo.addToDo("Hacer las compras");
