@@ -86,37 +86,33 @@ class Vista {
  }
 
   // Event listener
-  bindAddTodo(handle) {
+  bindAddTodo(handler) {
     this.form.addEventListener('submit', event => {
       event.preventDefault()
 
       if (this._todoText) {
-        handle(this._todoText)
+        handler(this._todoText)
         this._resetInput()
       }
     })
   }
 
-  bindDeleteTodo(handle) {
-    this.toDoList.addEventListener("click", function(event) {
-      event.preventDefault();
-
-      if (event.target.className === "delete") {
+  bindDeleteTodo(handler) {
+    this.toDoList.addEventListener("click", event => {
+      if (event.target.className === 'delete') {
         const id = parseInt(event.target.parentElement.id);
 
-        handle(id);
+        handler(id);
       }
     });
   }
 
-  bindToggleTodo(handle) {
-    this.toDoList.addEventListener("change", function(event) {
-      event.preventDefault();
-
-      if (event.target.type === "checkbox") {
+  bindToggleTodo(handler) {
+    this.toDoList.addEventListener("change", event => {
+      if (event.target.type === 'checkbox') {
         const id = parseInt(event.target.parentElement.id);
 
-        handle(id);
+        handler(id);
       }
     });
   }
